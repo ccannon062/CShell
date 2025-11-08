@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 
 typedef enum {
     CMD_EXIT,
@@ -59,11 +60,31 @@ void cleanString(char *str) {
   while (str[j++] = str[i++]);
 }
 
+int findExecutable(char *cmd, char *fullPath) {
+  char *pathValue;
+  char *token;
+  char pathCopy[1024];
+  pathValue = getenv("PATH");
+  if(pathValue == NULL) return 0;
+  strncpy(pathCopy, pathValue, sizeof(pathCopy) - 1);
+  pathCopy[sizeof(pathCopy) - 1] = '\0';
+  token = strtok(pathCopy, ":");
+  while(token != NULL) {
+    sprintf(fullPath, "%s/%s", token, cmd);
+    if(access(fullPath, X_OK) == 0) {
+      return 1;
+    }
+    token = strtok(NULL, ":");
+  }
+  return 0;
+}
+
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
   char input[100];
   char command[10];
   char args[100];
+  char fullPath[256];
   while(1) {
     printf("$ ");
     fgets(input, 100, stdin);
@@ -91,6 +112,8 @@ int main(int argc, char *argv[]) {
           printf("%s is a shell builtin\n", args);
         } else if (strcmp(args, "type") == 0) {
           printf("%s is a shell builtin\n", args);
+        } else if(findExecutable(args, fullPath) == 1) {
+          printf("%s is %s\n", args, fullPath);
         } else {
           printf("%s: not found\n", args);
         }
