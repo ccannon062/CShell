@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
           printf("%s: not found\n", args);
         }
         break;
-      default:
+      case CMD_UNKNOWN:
         printf("%s: command not found\n", input);
         break;
     }
