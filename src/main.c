@@ -22,7 +22,7 @@ void parseCommand(char *src, char *dest) {
 }
 
 CommandType getCommandType(char *input) {
-    char command[10];
+    char command[100];
     parseCommand(input, command);
 
     if (strcmp(command, "exit") == 0) return CMD_EXIT;
@@ -74,11 +74,12 @@ int main(int argc, char *argv[]) {
     switch(cmd) {
       case CMD_EXIT:
         if (strlen(args) == 1) {
-          if(strcmp(args, "0") == 0) {
-          return 0;
-          }
+          if(strcmp(args, "1") == 0) {
           return 1;
+          }
+          return 0;
         }
+        return 0;
         break;
       case CMD_ECHO:
         printf("%s\n", args);
