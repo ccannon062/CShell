@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 typedef enum {
     CMD_EXIT,
@@ -68,16 +70,44 @@ int findExecutable(char *cmd, char *fullPath) {
   if(pathValue == NULL) return 0;
   strncpy(pathCopy, pathValue, sizeof(pathCopy) - 1);
   pathCopy[sizeof(pathCopy) - 1] = '\0';
-  token = strtok(pathCopy, ":");
+  token = strtok(pathCopy, ":;");
   while(token != NULL) {
     sprintf(fullPath, "%s/%s", token, cmd);
     if(access(fullPath, X_OK) == 0) {
       return 1;
     }
-    token = strtok(NULL, ":");
+    token = strtok(NULL, ":;");
   }
   return 0;
 }
+
+void runExternal(char *args) {
+    char *argv[20];
+    pid_t pid;
+    int status;
+
+    char *token = strtok(args, " ");
+    int i = 0;
+    while(token != NULL && i < 19) {
+        argv[i++] = token;
+        token = strtok(NULL, " ");
+    }
+    argv[i] = NULL;
+
+    if (i == 0) return;
+
+    pid = fork();
+    if (pid == 0) {
+        execvp(argv[0], argv);
+        perror("execvp failed");
+        exit(1);
+    } else if (pid > 0) {
+        waitpid(pid, &status, 0);
+    } else {
+        fprintf(stderr, "fork failed\n");
+    }
+}
+
 
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
@@ -119,6 +149,11 @@ int main(int argc, char *argv[]) {
         }
         break;
       case CMD_UNKNOWN:
+        parseCommand(input, command);
+        if(findExecutable(command, fullPath) == 1) {
+          runExternal(input);
+          break;
+        }
         printf("%s: command not found\n", input);
         break;
     }
