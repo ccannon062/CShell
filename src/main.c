@@ -5,11 +5,13 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <limits.h>
 
 typedef enum {
     CMD_EXIT,
     CMD_ECHO,
     CMD_TYPE,
+    CMD_PWD,
     CMD_UNKNOWN
 } CommandType;
 
@@ -31,6 +33,7 @@ CommandType getCommandType(char *input) {
     if (strcmp(command, "exit") == 0) return CMD_EXIT;
     else if (strcmp(command, "echo") == 0) return CMD_ECHO;
     else if (strcmp(command, "type") == 0) return CMD_TYPE;
+    else if (strcmp(command, "pwd") == 0) return CMD_PWD;
     else return CMD_UNKNOWN;
 }
 
@@ -150,12 +153,19 @@ int main(int argc, char *argv[]) {
           printf("%s: not found\n", args);
         }
         break;
+      case CMD_PWD:
+        char cwd[PATH_MAX];
+        if(getcwd(cwd, sizeof(cwd)) != NULL) {
+          printf("%s\n", cwd);
+        }
+        break;
       case CMD_UNKNOWN:
         parseCommand(input, command);
         if(findExecutable(command, fullPath) == 1) {
           runExternal(input);
           break;
         }
+      default:
         printf("%s: command not found\n", input);
         break;
     }
