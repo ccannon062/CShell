@@ -12,6 +12,7 @@ typedef enum {
     CMD_ECHO,
     CMD_TYPE,
     CMD_PWD,
+    CMD_CD,
     CMD_UNKNOWN
 } CommandType;
 
@@ -34,6 +35,7 @@ CommandType getCommandType(char *input) {
     else if (strcmp(command, "echo") == 0) return CMD_ECHO;
     else if (strcmp(command, "type") == 0) return CMD_TYPE;
     else if (strcmp(command, "pwd") == 0) return CMD_PWD;
+    else if (strcmp(command, "cd") == 0) return CMD_CD;
     else return CMD_UNKNOWN;
 }
 
@@ -113,6 +115,13 @@ void runExternal(char *args) {
     }
 }
 
+int isBuiltin(char *cmd) {
+    return (strcmp(cmd, "echo") == 0 || 
+            strcmp(cmd, "exit") == 0 || 
+            strcmp(cmd, "type") == 0 || 
+            strcmp(cmd, "pwd") == 0 ||
+            strcmp(cmd, "cd") == 0);
+}
 
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
@@ -141,33 +150,34 @@ int main(int argc, char *argv[]) {
         printf("%s\n", args);
         break;
       case CMD_TYPE:
-        if(strcmp(args, "echo") == 0) {
-          printf("%s is a shell builtin\n", args);
-        } else if (strcmp(args, "exit") == 0) {
-          printf("%s is a shell builtin\n", args);
-        } else if (strcmp(args, "type") == 0) {
-          printf("%s is a shell builtin\n", args);
-        } else if(strcmp(args, "pwd") == 0) {
-          printf("%s is a shell builtin\n", args);
+        if(isBuiltin(args)) {
+        printf("%s is a shell builtin\n", args);
         } else if(findExecutable(args, fullPath) == 1) {
-          printf("%s is %s\n", args, fullPath);
+        printf("%s is %s\n", args, fullPath);
         } else {
-          printf("%s: not found\n", args);
+        printf("%s: not found\n", args);
         }
         break;
-      case CMD_PWD:
+      case CMD_PWD: {
         char cwd[PATH_MAX];
         if(getcwd(cwd, sizeof(cwd)) != NULL) {
           printf("%s\n", cwd);
         }
         break;
+        }
+      case CMD_CD: {
+        int result = chdir(args);
+        if(result == -1) {
+          printf("cd: %s: No such file or directory\n", args);
+        }
+        break;
+        }
       case CMD_UNKNOWN:
         parseCommand(input, command);
         if(findExecutable(command, fullPath) == 1) {
           runExternal(input);
           break;
         }
-      default:
         printf("%s: command not found\n", input);
         break;
     }
