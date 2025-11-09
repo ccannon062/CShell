@@ -166,6 +166,12 @@ int main(int argc, char *argv[]) {
         break;
         }
       case CMD_CD: {
+        char *home_dir;
+        if(strcmp("~", args) == 0) {
+          home_dir = getenv("HOME");
+          chdir(home_dir);
+          break;
+        }
         int result = chdir(args);
         if(result == -1) {
           printf("cd: %s: No such file or directory\n", args);
