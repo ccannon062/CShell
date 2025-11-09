@@ -82,11 +82,14 @@ int findExecutable(char *cmd, char *fullPath) {
 }
 
 void runExternal(char *args) {
+    char argsCopy[100];
+    strcpy(argsCopy, args);
+
     char *argv[20];
     pid_t pid;
     int status;
 
-    char *token = strtok(args, " ");
+    char *token = strtok(argsCopy, " ");
     int i = 0;
     while(token != NULL && i < 19) {
         argv[i++] = token;
@@ -95,7 +98,6 @@ void runExternal(char *args) {
     argv[i] = NULL;
 
     if (i == 0) return;
-
     pid = fork();
     if (pid == 0) {
         execvp(argv[0], argv);
@@ -112,7 +114,7 @@ void runExternal(char *args) {
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
   char input[100];
-  char command[10];
+  char command[100];
   char args[100];
   char fullPath[256];
   while(1) {
