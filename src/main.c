@@ -147,6 +147,8 @@ int main(int argc, char *argv[]) {
           printf("%s is a shell builtin\n", args);
         } else if (strcmp(args, "type") == 0) {
           printf("%s is a shell builtin\n", args);
+        } else if(strcmp(args, "pwd") == 0) {
+          printf("%s is a shell builtin\n", args);
         } else if(findExecutable(args, fullPath) == 1) {
           printf("%s is %s\n", args, fullPath);
         } else {
