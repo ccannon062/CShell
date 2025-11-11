@@ -123,6 +123,56 @@ int isBuiltin(char *cmd) {
             strcmp(cmd, "cd") == 0);
 }
 
+void printLiteral(char *args) {
+    if(args[0] == '\0') {
+        putchar('\n');
+        return;
+    }
+    if(args[0] == '\'') {
+        int i = 1;
+        while(args[i] != '\0' && args[i] != '\'') {
+            putchar(args[i]);
+            i++;
+        }
+        if(args[i] == '\'') {
+            i++;
+            while(args[i] == ' ') i++;
+            if(args[i] != '\0') {
+                printLiteral(&args[i]);
+                return;
+            }
+        }
+    } else {
+        int i = 0;
+        while(args[i] != '\0' && args[i] != ' ' && args[i] != '\'') {
+            putchar(args[i]);
+            i++;
+        }
+        while(args[i] == ' ') i++;
+        if(args[i] != '\0') {
+            printLiteral(&args[i]);
+            return;
+        }
+    }
+    putchar('\n');
+}
+
+void printCollapsed(char *str) {
+    int inSpace = 0;
+    for(int i = 0; str[i] != '\0'; i++) {
+        if(isspace(str[i])) {
+            if(!inSpace) {
+                putchar(' ');
+                inSpace = 1;
+            }
+        } else {
+            putchar(str[i]);
+            inSpace = 0;
+        }
+    }
+    putchar('\n');
+}
+
 int main(int argc, char *argv[]) {
   setbuf(stdout, NULL);
   char input[100];
@@ -147,7 +197,11 @@ int main(int argc, char *argv[]) {
         return 0;
         break;
       case CMD_ECHO:
-        printf("%s\n", args);
+        if(args[0] == '\'') {
+          printLiteral(args);
+        } else {
+          printCollapsed(args);
+        }
         break;
       case CMD_TYPE:
         if(isBuiltin(args)) {
